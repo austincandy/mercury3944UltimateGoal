@@ -110,13 +110,13 @@ public class PIDTesting extends LinearOpMode
         while (opModeIsActive())
         {
 //            // Use PID with imu input to drive in a straight line.
-//            correction = pidDrive.performPID(getAngle());
+            correction = pidDrive.performPID(getAngle());
 //
-//            telemetry.addData("1 imu heading", lastAngles.firstAngle);
-//            telemetry.addData("2 global heading", globalAngle);
-//            telemetry.addData("3 correction", correction);
-//            telemetry.addData("4 turn rotation", rotation);
-//            telemetry.update();
+            telemetry.addData("1 imu heading", lastAngles.firstAngle);
+            telemetry.addData("2 global heading", globalAngle);
+            telemetry.addData("3 correction", correction);
+            telemetry.addData("4 turn rotation", rotation);
+            telemetry.update();
 //
 //            // set power levels.
 //            leftMotor.setPower(power - correction);

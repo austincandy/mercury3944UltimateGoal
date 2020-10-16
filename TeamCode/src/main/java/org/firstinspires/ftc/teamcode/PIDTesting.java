@@ -215,9 +215,6 @@ public class PIDTesting extends LinearOpMode
     }
 
     private void drive(double inches, double power) {
-        int foward = 1;
-        if (inches < 0)
-            foward = -1;
         resetAngle();
         pidDrive.reset();
         pidDrive.setSetpoint(0);
@@ -232,12 +229,11 @@ public class PIDTesting extends LinearOpMode
 
 //        int motorCounts = Math.abs(leftMotor.getCurrentPosition()) + 1440;
         //89.12676813
-
-        int motorCounts = (int) (Math.abs(89.12676813 * inches) * foward);
+        int motorCounts = (int) (Math.abs(89.12676813 * inches));
         pidDistance.reset();
         pidDistance.setSetpoint(motorCounts);
         pidDistance.setInputRange(Math.abs(leftMotor.getCurrentPosition()), motorCounts);
-        pidDistance.setOutputRange(0, power * foward);
+        pidDistance.setOutputRange(0, power);
 
         pidDistance.setTolerance(0);
         pidDistance.enable();
@@ -261,14 +257,8 @@ public class PIDTesting extends LinearOpMode
         while (opModeIsActive() && !pidDistance.onTarget()){
             correction = pidDrive.performPID(getAngle());
             double motorPower = pidDistance.performPID(Math.abs(leftMotor.getCurrentPosition()));
-            if (foward == 1) {
-                leftMotor.setPower(motorPower - correction);
-                rightMotor.setPower(motorPower + correction);
-            } else {
-                leftMotor.setPower(motorPower + correction);
-                rightMotor.setPower(motorPower - correction);
-            }
-
+            leftMotor.setPower(motorPower - correction);
+            rightMotor.setPower(motorPower + correction);
 //            leftMotor.setPower(motorPower);
 //            rightMotor.setPower(motorPower);
 

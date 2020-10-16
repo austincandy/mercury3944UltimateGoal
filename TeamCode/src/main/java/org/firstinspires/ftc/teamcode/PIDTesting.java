@@ -23,12 +23,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
+
 @Autonomous(name="PIDTesting", group="Exercises")
 //@Disabled
 public class PIDTesting extends LinearOpMode
 {
     DcMotor                 leftMotor, rightMotor;
-    TouchSensor             touch;
+   // TouchSensor             touch;
     BNO055IMU               imu;
     Orientation             lastAngles = new Orientation();
     double                  globalAngle, power = .30, correction, rotation;
@@ -39,8 +40,8 @@ public class PIDTesting extends LinearOpMode
     @Override
     public void runOpMode() throws InterruptedException
     {
-        leftMotor = hardwareMap.dcMotor.get("left_motor");
-        rightMotor = hardwareMap.dcMotor.get("right_motor");
+        leftMotor = hardwareMap.dcMotor.get("leftMotor");
+        rightMotor = hardwareMap.dcMotor.get("rightMotor");
 
         leftMotor.setDirection(DcMotor.Direction.REVERSE);
 
@@ -48,7 +49,7 @@ public class PIDTesting extends LinearOpMode
         rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // get a reference to REV Touch sensor.
-        touch = hardwareMap.touchSensor.get("touch_sensor");
+       // touch = hardwareMap.touchSensor.get("touch_sensor");
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
 
@@ -73,7 +74,7 @@ public class PIDTesting extends LinearOpMode
         // straight line. P value controls how sensitive the correction is.
         pidDrive = new PIDController(.05, 0, 0);
 
-        pidDistance = new PIDController(0.005, 0.00002, 0);
+        pidDistance = new PIDController(0.005, 0.00000, 0);
 
 
         telemetry.addData("Mode", "calibrating...");
@@ -100,10 +101,10 @@ public class PIDTesting extends LinearOpMode
         sleep(1000);
 
         // Set up parameters for driving in a straight line.
-        pidDrive.setSetpoint(0);
-        pidDrive.setOutputRange(0, power);
-        pidDrive.setInputRange(-90, 90);
-        pidDrive.enable();
+//        pidDrive.setSetpoint(0);
+//        pidDrive.setOutputRange(0, power);
+//        pidDrive.setInputRange(-90, 90);
+//        pidDrive.enable();
 
         // drive until end of period.
 
@@ -116,6 +117,10 @@ public class PIDTesting extends LinearOpMode
             telemetry.addData("2 global heading", globalAngle);
             telemetry.addData("3 correction", correction);
             telemetry.addData("4 turn rotation", rotation);
+            telemetry.addData("position: ", Math.abs(leftMotor.getCurrentPosition()));
+            telemetry.addData("leftMotor", leftMotor.getCurrentPosition());
+            telemetry.addData("set", pidDistance.getSetpoint());
+            telemetry.addData("err", pidDistance.getError());
             telemetry.update();
 //
 //            // set power levels.
@@ -148,22 +153,22 @@ public class PIDTesting extends LinearOpMode
 //                // turn 90 degrees left.
 //                if (bButton) rotate(90, power);
 //            }
-                  drive(4,power);
-                  rotate(90, power);
-                  drive(4,power);
-                  rotate(90, power);
-                  drive(4,power);
-                  rotate(90, power);
-                  drive(4,power);
-                  rotate(90, power);
-                  drive(-4, power);
-                  rotate(-90,power);
-                  drive(-4, power);
-                  rotate(-90,power);
-                  drive(-4, power);
-                  rotate(-90,power);
-                  drive(-4, power);
-                  rotate(-90,power);
+            drive(200, power);
+//            rotate(90, power);
+//            drive(4,power);
+//            rotate(90, power);
+//            drive(4,power);
+//            rotate(90, power);
+//            drive(4,power);
+//            rotate(90, power);
+//            drive(-4, power);
+//            rotate(-90,power);
+//            drive(-4, power);
+//            rotate(-90,power);
+//            drive(-4, power);
+//            rotate(-90,power);
+//            drive(-4, power);
+//            rotate(-90,power);
         }
 
         // turn the motors off.
@@ -218,10 +223,15 @@ public class PIDTesting extends LinearOpMode
 
         rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        int motorCounts = Math.abs(rightMotor.getCurrentPosition()) + 1440;
+        leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+//        int motorCounts = Math.abs(leftMotor.getCurrentPosition()) + 1440;
+        //89.12676813
+        int motorCounts = (int) Math.abs(89.12676813 * inches);
         pidDistance.reset();
         pidDistance.setSetpoint(motorCounts);
-        pidDistance.setInputRange(Math.abs(rightMotor.getCurrentPosition()), motorCounts);
+        pidDistance.setInputRange(Math.abs(leftMotor.getCurrentPosition()), motorCounts);
         pidDistance.setOutputRange(0, power);
 
         pidDistance.setTolerance(0);
@@ -230,7 +240,8 @@ public class PIDTesting extends LinearOpMode
         leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
 
-        leftMotor.setTargetPosition(-(int)inches);
+//        leftMotor.setTargetPosition((int) (Math.round(motorCounts) * inches));
+        leftMotor.setTargetPosition(motorCounts);
 
         leftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
@@ -241,19 +252,27 @@ public class PIDTesting extends LinearOpMode
 
 
 
-        do
-        {
+
+        while (opModeIsActive() && !pidDistance.onTarget()){
             correction = pidDrive.performPID(getAngle());
-            double motorPower = pidDistance.performPID(Math.abs(rightMotor.getCurrentPosition()));
+            double motorPower = pidDistance.performPID(Math.abs(leftMotor.getCurrentPosition()));
             leftMotor.setPower(motorPower - correction);
             rightMotor.setPower(motorPower + correction);
             leftMotor.setPower(motorPower);
             rightMotor.setPower(motorPower);
 
-            telemetry.addData("position: ", Math.abs(rightMotor.getCurrentPosition()));
+            telemetry.addData("position: ", Math.abs(leftMotor.getCurrentPosition()));
             telemetry.addData("power: ", motorPower);
-            telemetry.update();
-        } while (opModeIsActive() && !pidDistance.onTarget());
+            telemetry.addData("target", ((int) Math.round(motorCounts) * inches));
+            telemetry.addData("leftMotor", leftMotor.getCurrentPosition());
+            telemetry.addData("leftMotor", motorCounts);
+            telemetry.addData("set", pidDistance.getSetpoint());
+            telemetry.addData("err", pidDistance.getError());
+//            telemetry.update();
+//            if (leftMotor.getTargetPosition() >= leftMotor.getCurrentPosition())
+//                leftMotor.setPower(0);
+//                rightMotor.setPower(0);
+        }
         while (opModeIsActive() && leftMotor.isBusy()) {
             idle();
         }
